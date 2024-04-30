@@ -10,11 +10,11 @@ import (
 )
 
 type AddHandler struct {
-	Limit    int
+	Limit    int64
 	Lifetime time.Duration
 }
 
-func NewAddHandler(limit int, lifetime time.Duration) *AddHandler {
+func NewAddHandler(limit int64, lifetime time.Duration) *AddHandler {
 	return &AddHandler{
 		Limit:    limit,
 		Lifetime: lifetime,
@@ -22,13 +22,13 @@ func NewAddHandler(limit int, lifetime time.Duration) *AddHandler {
 }
 
 func (handler *AddHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	bytes, err := io.ReadAll(r.Body)
-	if err != nil {
+	if r.ContentLength > handler.Limit {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	if len(bytes) > handler.Limit {
+	bytes, err := io.ReadAll(r.Body)
+	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}

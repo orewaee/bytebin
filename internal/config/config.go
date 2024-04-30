@@ -1,17 +1,11 @@
 package config
 
-import "time"
+import (
+	"time"
+)
 
 type Config struct {
-	Addr     string
-	Limit    int
-	Lifetime time.Duration
-}
-
-func DefaultConfig() *Config {
-	return &Config{
-		Addr:     ":8080",
-		Limit:    1024,
-		Lifetime: 3600,
-	}
+	Addr     string        `env:"ADDR" env-default:":8080"`
+	Limit    int64         `env:"LIMIT" env-default:"104857600"`
+	Lifetime time.Duration `env:"LIFETIME" env-default:"1h"`
 }

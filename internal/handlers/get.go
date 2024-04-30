@@ -11,6 +11,7 @@ func GetBin(w http.ResponseWriter, r *http.Request) {
 	b, ok := storage.GetBin(id)
 	if !ok {
 		w.WriteHeader(http.StatusNotFound)
+		return
 	}
 
 	w.Header().Set("Content-Type", b.ContentType)

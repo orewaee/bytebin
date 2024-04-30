@@ -1,19 +1,23 @@
 package main
 
 import (
-	"flag"
 	"github.com/orewaee/bytebin/internal/app"
+	"github.com/orewaee/bytebin/internal/config"
 	"log"
 	"os"
-	"strconv"
+	"time"
 )
 
 func main() {
-	port := flag.Int("port", 8080, "port to listen on")
-	flag.Parse()
-
 	logger := log.New(os.Stdout, "[bytebin] ", log.LstdFlags|log.Lmicroseconds|log.Lshortfile)
-	bytebin := app.New(":"+strconv.Itoa(*port), logger)
+	bytebin := app.New(
+		&config.Config{
+			Addr:     ":8080",
+			Limit:    1024,
+			Lifetime: time.Second * 10,
+		},
+		logger,
+	)
 
 	if err := bytebin.Run(); err != nil {
 		logger.Fatalln(err)

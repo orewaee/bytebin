@@ -1,6 +1,7 @@
 package app
 
 import (
+	"github.com/orewaee/bytebin/internal/config"
 	"github.com/orewaee/bytebin/internal/handlers"
 	"log"
 	"net/http"
@@ -12,15 +13,15 @@ type App struct {
 	Logger *log.Logger
 }
 
-func New(addr string, logger *log.Logger) *App {
+func New(config *config.Config, logger *log.Logger) *App {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("GET /health", handlers.HealthHandler)
-	mux.HandleFunc("POST /bin", handlers.AddBin)
+	mux.Handle("POST /bin", handlers.NewAddHandler(config.Limit, config.Lifetime))
 	mux.HandleFunc("GET /bin/{id}", handlers.GetBin)
 
 	server := &http.Server{
-		Addr:         addr,
+		Addr:         config.Addr,
 		Handler:      mux,
 		IdleTimeout:  time.Minute,
 		ReadTimeout:  5 * time.Second,

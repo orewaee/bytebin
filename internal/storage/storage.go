@@ -10,7 +10,15 @@ func AddBin(id string, bin *bin.Bin) {
 	bins[id] = bin
 }
 
+func RemoveBin(id string) {
+	delete(bins, id)
+}
+
 func GetBin(id string) (*bin.Bin, bool) {
 	b, ok := bins[id]
-	return b, ok
+	if !ok {
+		return nil, false
+	}
+
+	return b, true
 }

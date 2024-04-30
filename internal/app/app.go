@@ -16,9 +16,9 @@ type App struct {
 func New(config *config.Config, logger *log.Logger) *App {
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("GET /health", handlers.HealthHandler)
+	mux.Handle("GET /health", handlers.NewHealthHandler())
 	mux.Handle("POST /bin", handlers.NewAddHandler(config.Limit, config.Lifetime))
-	mux.HandleFunc("GET /bin/{id}", handlers.GetBin)
+	mux.Handle("GET /bin/{id}", handlers.NewGetHandler())
 
 	server := &http.Server{
 		Addr:         config.Addr,

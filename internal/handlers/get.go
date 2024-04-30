@@ -5,7 +5,13 @@ import (
 	"net/http"
 )
 
-func GetBin(w http.ResponseWriter, r *http.Request) {
+type GetHandler struct{}
+
+func NewGetHandler() *GetHandler {
+	return &GetHandler{}
+}
+
+func (handler *GetHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
 
 	b, ok := storage.GetBin(id)

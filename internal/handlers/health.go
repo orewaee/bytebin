@@ -2,6 +2,12 @@ package handlers
 
 import "net/http"
 
-func HealthHandler(w http.ResponseWriter, r *http.Request) {
+type HealthHandler struct{}
+
+func NewHealthHandler() *HealthHandler {
+	return &HealthHandler{}
+}
+
+func (*HealthHandler) ServeHTTP(w http.ResponseWriter, _ *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }

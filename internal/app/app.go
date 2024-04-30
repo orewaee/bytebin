@@ -11,11 +11,11 @@ import (
 )
 
 type App struct {
-	Addr   string
 	Server *http.Server
+	Logger *log.Logger
 }
 
-func New(addr string) *App {
+func New(addr string, logger *log.Logger) *App {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("GET /ping", func(w http.ResponseWriter, r *http.Request) {
@@ -57,8 +57,7 @@ func New(addr string) *App {
 		}
 
 		w.Header().Set("Content-Type", b.ContentType)
-		_, err := w.Write(b.Bytes)
-		if err != nil {
+		if _, err := w.Write(b.Bytes); err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 		}
 	})
@@ -72,16 +71,12 @@ func New(addr string) *App {
 	}
 
 	return &App{
-		Addr:   addr,
 		Server: server,
+		Logger: logger,
 	}
 }
 
 func (app *App) Run() error {
-	log.Println("running app on", app.Addr)
-	if err := app.Server.ListenAndServe(); err != nil {
-		return err
-	}
-
-	return nil
+	app.Logger.Println("running app at", app.Server.Addr)
+	return app.Server.ListenAndServe()
 }

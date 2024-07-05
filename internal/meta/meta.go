@@ -8,7 +8,7 @@ import (
 	"os"
 )
 
-// Read reads meta from the dir if it exists and returns a pointer of type *dto.Meta.
+// Read reads meta from the file if it exists and returns a pointer of type *dto.Meta.
 func Read(id string) (*dto.Meta, error) {
 	path := fmt.Sprintf("./meta/meta-%s.json", id)
 
@@ -50,4 +50,11 @@ func Write(meta *dto.Meta) error {
 	}
 
 	return json.NewEncoder(file).Encode(meta)
+}
+
+// Delete deletes the meta file.
+func Delete(id string) error {
+	path := fmt.Sprintf("./meta/meta-%s.json", id)
+
+	return os.Remove(path)
 }

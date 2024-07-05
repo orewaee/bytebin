@@ -10,7 +10,7 @@ import (
 
 // Read reads meta from the dir if it exists and returns a pointer of type *dto.Meta.
 func Read(id string) (*dto.Meta, error) {
-	path := "./meta/meta-" + id
+	path := fmt.Sprintf("./meta/meta-%s.json", id)
 
 	info, err := os.Stat(path)
 	if err != nil && errors.Is(err, os.ErrNotExist) {
@@ -42,7 +42,7 @@ func Read(id string) (*dto.Meta, error) {
 
 // Write writes meta to a file. If it already exists, the file is overwritten.
 func Write(meta *dto.Meta) error {
-	path := "./meta/meta-" + meta.Id
+	path := fmt.Sprintf("./meta/meta-%s.json", meta.Id)
 
 	file, err := os.Create(path)
 	if err != nil {

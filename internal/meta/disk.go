@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/orewaee/bytebin/pkg/dto"
 	"os"
+	"strings"
 )
 
 type DiskManager struct{}
@@ -57,4 +58,28 @@ func (manager *DiskManager) GetById(id string) (*dto.Meta, error) {
 	}
 
 	return meta, nil
+}
+
+func (manager *DiskManager) GetAllIds() ([]string, error) {
+	path := "./meta"
+
+	entries, err := os.ReadDir(path)
+	if err != nil {
+		return nil, err
+	}
+
+	var ids = make([]string, 0, len(entries))
+	for _, entry := range entries {
+		if entry.IsDir() {
+			continue
+		}
+
+		id := strings.Replace(
+			strings.TrimSuffix(entry.Name(), ".json"),
+			"meta-", "", 1,
+		)
+		ids = append(ids, id)
+	}
+
+	return ids, nil
 }

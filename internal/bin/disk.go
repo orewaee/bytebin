@@ -3,6 +3,7 @@ package bin
 import (
 	"errors"
 	"os"
+	"strings"
 )
 
 type DiskManager struct{}
@@ -53,4 +54,25 @@ func (manager *DiskManager) GetById(id string) ([]byte, error) {
 	}
 
 	return bytes, nil
+}
+
+func (manager *DiskManager) GetAllIds() ([]string, error) {
+	path := "./bins"
+
+	entries, err := os.ReadDir(path)
+	if err != nil {
+		return nil, err
+	}
+
+	var ids = make([]string, 0, len(entries))
+	for _, entry := range entries {
+		if entry.IsDir() {
+			continue
+		}
+
+		id := strings.TrimPrefix(entry.Name(), "bin-")
+		ids = append(ids, id)
+	}
+
+	return ids, nil
 }

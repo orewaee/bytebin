@@ -2,3 +2,6 @@
 
 /meta
 /bins
+
+/config/*.yaml
+!/config/example.yaml

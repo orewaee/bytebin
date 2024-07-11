@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"github.com/orewaee/bytebin/internal/config"
 	"github.com/orewaee/bytebin/internal/storage"
 	"github.com/orewaee/bytebin/pkg/dto"
 	"github.com/rs/xid"
@@ -46,7 +47,7 @@ func (h *PostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		Ip:          ip,
 		UserAgent:   userAgent,
 		CreatedAt:   time.Now(),
-		Lifetime:    time.Second * 15,
+		Lifetime:    config.Get().Lifetime,
 	}
 
 	if err := h.storage.Add(id, bytes, m); err != nil {

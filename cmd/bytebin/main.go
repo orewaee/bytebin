@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/orewaee/bytebin/internal/app"
 	"github.com/orewaee/bytebin/internal/bin"
+	"github.com/orewaee/bytebin/internal/config"
 	"github.com/orewaee/bytebin/internal/meta"
 	"github.com/orewaee/bytebin/internal/storage"
 	"github.com/orewaee/bytebin/internal/utils"
@@ -10,6 +11,10 @@ import (
 )
 
 func main() {
+	if err := config.Load(); err != nil {
+		log.Fatalln(err)
+	}
+
 	if err := utils.CheckDir("metas"); err != nil {
 		log.Fatalln(err)
 	}
@@ -31,7 +36,7 @@ func main() {
 	}()
 
 	bytebin := app.New(diskStorage)
-	if err := bytebin.Run(":8080"); err != nil {
+	if err := bytebin.Run(config.Get().Addr); err != nil {
 		log.Fatalln(err)
 	}
 }

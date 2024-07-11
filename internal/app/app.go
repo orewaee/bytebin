@@ -22,7 +22,7 @@ func (app *App) Run(addr string) error {
 	mux := http.NewServeMux()
 
 	mux.Handle("POST /bin", handlers.NewPostHandler(app.storage))
-	mux.Handle("GET /bin/{id}", handlers.NewGetHandler())
+	mux.Handle("GET /bin/{id}", handlers.NewGetHandler(app.storage))
 
 	server := &http.Server{
 		Addr:         addr,

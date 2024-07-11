@@ -24,7 +24,7 @@ func (manager *DiskManager) Add(id string, bytes []byte) error {
 		return err
 	}
 
-	return nil
+	return file.Close()
 }
 
 func (manager *DiskManager) RemoveById(id string) error {

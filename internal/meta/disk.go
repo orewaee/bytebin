@@ -16,23 +16,27 @@ func NewDiskManager() *DiskManager {
 }
 
 func (manager *DiskManager) Add(id string, meta *dto.Meta) error {
-	path := fmt.Sprintf("./meta/meta-%s.json", id)
+	path := fmt.Sprintf("./metas/meta-%s.json", id)
 
 	file, err := os.Create(path)
 	if err != nil {
 		return err
 	}
 
-	return json.NewEncoder(file).Encode(meta)
+	if err := json.NewEncoder(file).Encode(meta); err != nil {
+		return err
+	}
+
+	return file.Close()
 }
 
 func (manager *DiskManager) RemoveById(id string) error {
-	path := fmt.Sprintf("./meta/meta-%s.json", id)
+	path := fmt.Sprintf("./metas/meta-%s.json", id)
 	return os.Remove(path)
 }
 
 func (manager *DiskManager) GetById(id string) (*dto.Meta, error) {
-	path := fmt.Sprintf("./meta/meta-%s.json", id)
+	path := fmt.Sprintf("./metas/meta-%s.json", id)
 
 	info, err := os.Stat(path)
 	if err != nil && errors.Is(err, os.ErrNotExist) {
@@ -61,7 +65,7 @@ func (manager *DiskManager) GetById(id string) (*dto.Meta, error) {
 }
 
 func (manager *DiskManager) GetAllIds() ([]string, error) {
-	path := "./meta"
+	path := "./metas"
 
 	entries, err := os.ReadDir(path)
 	if err != nil {

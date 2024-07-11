@@ -4,6 +4,9 @@ import (
 	"github.com/orewaee/bytebin/internal/bin"
 	"github.com/orewaee/bytebin/internal/meta"
 	"github.com/orewaee/bytebin/pkg/dto"
+	"log"
+	"slices"
+	"time"
 )
 
 type DiskStorage struct {
@@ -18,26 +21,96 @@ func NewDiskStorage(bins bin.Manager, metas meta.Manager) *DiskStorage {
 	}
 }
 
-func Load() error {
+func (s *DiskStorage) Load() error {
+	ids, err := s.GetAllIds()
+	if err != nil {
+		return err
+	}
+
+	for _, id := range ids {
+		m, err := s.metas.GetById(id)
+		if err != nil {
+			return err
+		}
+
+		expireAt := m.CreatedAt.Add(m.Lifetime)
+		if expireAt.After(time.Now()) {
+			time.AfterFunc(expireAt.Sub(time.Now()), func() {
+				if err := s.RemoveById(id); err != nil {
+					log.Println(err)
+				}
+			})
+
+			continue
+		}
+
+		if err := s.RemoveById(id); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (s *DiskStorage) Unload() error {
 	panic("unimplemented")
 }
 
-func Unload() error {
-	panic("unimplemented")
+func (s *DiskStorage) Add(id string, bytes []byte, meta *dto.Meta) error {
+	if err := s.bins.Add(id, bytes); err != nil {
+		return err
+	}
+
+	if err := s.metas.Add(id, meta); err != nil {
+		return err
+	}
+
+	return nil
 }
 
-func Add(id string, bytes []byte, meta *dto.Meta) error {
-	panic("unimplemented")
+func (s *DiskStorage) RemoveById(id string) error {
+	if err := s.bins.RemoveById(id); err != nil {
+		return err
+	}
+
+	if err := s.metas.RemoveById(id); err != nil {
+		return err
+	}
+
+	return nil
 }
 
-func RemoveById(id string) error {
-	panic("unimplemented")
+func (s *DiskStorage) GetById(id string) ([]byte, *dto.Meta, error) {
+	b, err := s.bins.GetById(id)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	m, err := s.metas.GetById(id)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return b, m, nil
 }
 
-func GetById(id string) ([]byte, *dto.Meta, error) {
-	panic("unimplemented")
-}
+func (s *DiskStorage) GetAllIds() ([]string, error) {
+	metaIds, err := s.metas.GetAllIds()
+	if err != nil {
+		return nil, err
+	}
 
-func GetAllIds() ([]string, error) {
-	panic("unimplemented")
+	binIds, err := s.bins.GetAllIds()
+	if err != nil {
+		return nil, err
+	}
+
+	var ids = make([]string, 0, len(metaIds))
+	for _, id := range metaIds {
+		if slices.Contains(binIds, id) {
+			ids = append(ids, id)
+		}
+	}
+
+	return ids, nil
 }

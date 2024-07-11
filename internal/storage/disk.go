@@ -65,6 +65,12 @@ func (s *DiskStorage) Add(id string, bytes []byte, meta *dto.Meta) error {
 		return err
 	}
 
+	time.AfterFunc(meta.Lifetime, func() {
+		if err := s.RemoveById(id); err != nil {
+			log.Println(err)
+		}
+	})
+
 	return nil
 }
 

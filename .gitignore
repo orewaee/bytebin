@@ -1,7 +1,9 @@
 /.idea
 
-/meta
+/metas
 /bins
 
 /config/*.yaml
 !/config/example.yaml
+
+/logs

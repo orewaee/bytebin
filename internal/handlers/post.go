@@ -5,28 +5,32 @@ import (
 	"github.com/orewaee/bytebin/internal/storage"
 	"github.com/orewaee/bytebin/pkg/dto"
 	"github.com/rs/xid"
+	"github.com/rs/zerolog"
 	"io"
-	"log"
 	"net/http"
 	"time"
 )
 
 type PostHandler struct {
 	storage storage.Storage
+	log     *zerolog.Logger
 }
 
-func NewPostHandler(storage storage.Storage) *PostHandler {
+func NewPostHandler(storage storage.Storage, log *zerolog.Logger) *PostHandler {
 	return &PostHandler{
 		storage: storage,
+		log:     log,
 	}
 }
 
 func (h *PostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	h.log.Debug().Str("method", "POST").Str("url", r.URL.String()).Send()
+
 	bytes, err := io.ReadAll(r.Body)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		if _, err := w.Write([]byte("failed to read bytes")); err != nil {
-			log.Println(err)
+			h.log.Error().Err(err).Msg("failed to write response")
 		}
 		return
 	}
@@ -53,13 +57,13 @@ func (h *PostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err := h.storage.Add(id, bytes, m); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		if _, err := w.Write([]byte(err.Error())); err != nil {
-			log.Println(err)
+			h.log.Error().Err(err).Msg("failed to write response")
 		}
 		return
 	}
 
 	w.WriteHeader(http.StatusCreated)
 	if _, err := w.Write([]byte(id)); err != nil {
-		log.Println(err)
+		h.log.Error().Err(err).Msg("failed to write response")
 	}
 }

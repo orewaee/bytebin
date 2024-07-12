@@ -1,24 +1,43 @@
 package main
 
 import (
-	"github.com/ilyakaznacheev/cleanenv"
 	"github.com/orewaee/bytebin/internal/app"
+	"github.com/orewaee/bytebin/internal/bin"
 	"github.com/orewaee/bytebin/internal/config"
-	"log"
-	"os"
+	"github.com/orewaee/bytebin/internal/logger"
+	"github.com/orewaee/bytebin/internal/meta"
+	"github.com/orewaee/bytebin/internal/storage"
+	"github.com/orewaee/bytebin/internal/utils"
 )
 
 func main() {
-	logger := log.New(os.Stdout, "[bytebin] ", log.LstdFlags|log.Lmicroseconds|log.Lshortfile)
-
-	var cfg config.Config
-	if err := cleanenv.ReadEnv(&cfg); err != nil {
-		logger.Fatalln(err)
+	log, err := logger.New(".")
+	if err != nil {
+		panic(err)
 	}
 
-	bytebin := app.New(&cfg, logger)
+	if err := config.Load(); err != nil {
+		log.Fatal().Err(err).Send()
+	}
 
-	if err := bytebin.Run(); err != nil {
-		logger.Fatalln(err)
+	if err := utils.CheckDir("metas"); err != nil {
+		log.Fatal().Err(err).Send()
+	}
+	diskMetas := meta.NewDiskManager()
+
+	if err := utils.CheckDir("bins"); err != nil {
+		log.Fatal().Err(err).Send()
+	}
+	diskBins := bin.NewDiskManager()
+
+	diskStorage := storage.NewDiskStorage(diskBins, diskMetas)
+	if err := diskStorage.Load(); err != nil {
+		log.Fatal().Err(err).Send()
+	}
+	defer diskStorage.Unload()
+
+	bytebin := app.New(diskStorage, log)
+	if err := bytebin.Run(config.Get().Addr); err != nil {
+		log.Fatal().Err(err).Send()
 	}
 }

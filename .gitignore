@@ -1,1 +1,9 @@
 /.idea
+
+/metas
+/bins
+
+/config/*.yaml
+!/config/example.yaml
+
+/logs

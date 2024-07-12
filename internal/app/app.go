@@ -1,40 +1,38 @@
 package app
 
 import (
-	"github.com/orewaee/bytebin/internal/config"
 	"github.com/orewaee/bytebin/internal/handlers"
-	"log"
+	"github.com/orewaee/bytebin/internal/storage"
+	"github.com/rs/zerolog"
 	"net/http"
 	"time"
 )
 
 type App struct {
-	Server *http.Server
-	Logger *log.Logger
+	storage storage.Storage
+	log     *zerolog.Logger
 }
 
-func New(config *config.Config, logger *log.Logger) *App {
+func New(storage storage.Storage, log *zerolog.Logger) *App {
+	return &App{
+		storage: storage,
+		log:     log,
+	}
+}
+
+func (app *App) Run(addr string) error {
 	mux := http.NewServeMux()
 
-	mux.Handle("GET /health", handlers.NewHealthHandler())
-	mux.Handle("POST /bin", handlers.NewAddHandler(config.Limit, config.Lifetime))
-	mux.Handle("GET /bin/{id}", handlers.NewGetHandler())
+	mux.Handle("POST /bin", handlers.NewPostHandler(app.storage, app.log))
+	mux.Handle("GET /bin/{id}", handlers.NewGetHandler(app.storage, app.log))
 
 	server := &http.Server{
-		Addr:         config.Addr,
+		Addr:         addr,
 		Handler:      mux,
-		IdleTimeout:  time.Minute,
-		ReadTimeout:  5 * time.Second,
-		WriteTimeout: 5 * time.Second,
+		ReadTimeout:  time.Second * 5,
+		WriteTimeout: time.Second * 5,
 	}
 
-	return &App{
-		Server: server,
-		Logger: logger,
-	}
-}
-
-func (app *App) Run() error {
-	app.Logger.Println("running app at", app.Server.Addr)
-	return app.Server.ListenAndServe()
+	app.log.Info().Msgf("running app on addr %s", addr)
+	return server.ListenAndServe()
 }

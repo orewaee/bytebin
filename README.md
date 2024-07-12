@@ -1,17 +1,18 @@
 ## About
 
-A small app that works with byte arrays, which allows you to store arbitrary data, not just specific ones.
-At the moment there is no limitation, but there are problems with transporting certain types of data.
-To correct them, it is necessary to introduce compression and archiving.
-Byte arrays are sent directly to memory, allowing them to be quickly retrieved when needed.
-It is also possible to configure the maximum size of saved files and their lifetime.
+An application that temporarily stores data as byte arrays.
 
 
 ## Usage
 
-To work with beans, two endpoints are implemented:
+To work with the app, you can use the following endpoints:
 
-- `POST /bin` - create a bin
-- `GET /bin/{id}` - get data from a bin
+- `POST /bin` - create a bin.
+  The body should contain the binary data that will be saved.
+  It is also important to specify the `Content-Type` header.
+  If it is not specified, bytebin will try to determine it automatically.
+  If this is not possible, `application/ octet-stream` will be used.
+  A unique id will be returned as a response.
 
-There is also `GET /health` to check the life of the app.
+- `GET /bin/{id}` - get bin by id.
+  The response will be returned as a byte array and a `Content-Type` header associated with this bin.

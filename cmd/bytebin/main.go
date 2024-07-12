@@ -34,11 +34,7 @@ func main() {
 	if err := diskStorage.Load(); err != nil {
 		log.Fatal().Err(err).Send()
 	}
-	defer func() {
-		if err := diskStorage.Unload(); err != nil {
-			log.Fatal().Err(err).Send()
-		}
-	}()
+	defer diskStorage.Unload()
 
 	bytebin := app.New(diskStorage, log)
 	if err := bytebin.Run(config.Get().Addr); err != nil {

@@ -10,14 +10,16 @@ import (
 )
 
 type DiskStorage struct {
-	bins  bin.Manager
-	metas meta.Manager
+	bins   bin.Manager
+	metas  meta.Manager
+	timers map[string]*time.Timer
 }
 
 func NewDiskStorage(bins bin.Manager, metas meta.Manager) *DiskStorage {
 	return &DiskStorage{
-		bins:  bins,
-		metas: metas,
+		bins:   bins,
+		metas:  metas,
+		timers: make(map[string]*time.Timer),
 	}
 }
 
@@ -35,11 +37,13 @@ func (s *DiskStorage) Load() error {
 
 		expireAt := m.CreatedAt.Add(m.Lifetime)
 		if expireAt.After(time.Now()) {
-			time.AfterFunc(expireAt.Sub(time.Now()), func() {
+			timer := time.AfterFunc(expireAt.Sub(time.Now()), func() {
 				if err := s.RemoveById(id); err != nil {
 					log.Println(err)
 				}
 			})
+
+			s.timers[id] = timer
 
 			continue
 		}
@@ -53,7 +57,11 @@ func (s *DiskStorage) Load() error {
 }
 
 func (s *DiskStorage) Unload() error {
-	panic("unimplemented")
+	for _, timer := range s.timers {
+		timer.Stop()
+	}
+
+	return nil
 }
 
 func (s *DiskStorage) Add(id string, bytes []byte, meta *dto.Meta) error {
@@ -65,11 +73,13 @@ func (s *DiskStorage) Add(id string, bytes []byte, meta *dto.Meta) error {
 		return err
 	}
 
-	time.AfterFunc(meta.Lifetime, func() {
+	timer := time.AfterFunc(meta.Lifetime, func() {
 		if err := s.RemoveById(id); err != nil {
 			log.Println(err)
 		}
 	})
+
+	s.timers[id] = timer
 
 	return nil
 }
@@ -81,6 +91,11 @@ func (s *DiskStorage) RemoveById(id string) error {
 
 	if err := s.metas.RemoveById(id); err != nil {
 		return err
+	}
+
+	timer, ok := s.timers[id]
+	if ok {
+		timer.Stop()
 	}
 
 	return nil

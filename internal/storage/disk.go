@@ -29,6 +29,28 @@ func (s *DiskStorage) Load() error {
 		return err
 	}
 
+	metaIds, err := s.metas.GetAllIds()
+	for _, metaId := range metaIds {
+		if slices.Contains(ids, metaId) {
+			continue
+		}
+
+		if err := s.metas.RemoveById(metaId); err != nil {
+			return err
+		}
+	}
+
+	binIds, err := s.bins.GetAllIds()
+	for _, binId := range binIds {
+		if slices.Contains(ids, binId) {
+			continue
+		}
+
+		if err := s.bins.RemoveById(binId); err != nil {
+			return err
+		}
+	}
+
 	for _, id := range ids {
 		m, err := s.metas.GetById(id)
 		if err != nil {

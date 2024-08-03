@@ -6,13 +6,13 @@ import (
 	"strings"
 )
 
-type DiskManager struct{}
+type DiskBinRepo struct{}
 
-func NewDiskManager() *DiskManager {
-	return &DiskManager{}
+func NewDiskBinRepo() *DiskBinRepo {
+	return &DiskBinRepo{}
 }
 
-func (manager *DiskManager) Add(id string, bytes []byte) error {
+func (repo *DiskBinRepo) Add(id string, bin []byte) error {
 	path := "./bins/bin-" + id
 
 	file, err := os.Create(path)
@@ -20,19 +20,19 @@ func (manager *DiskManager) Add(id string, bytes []byte) error {
 		return err
 	}
 
-	if _, err := file.Write(bytes); err != nil {
+	if _, err := file.Write(bin); err != nil {
 		return err
 	}
 
 	return file.Close()
 }
 
-func (manager *DiskManager) RemoveById(id string) error {
+func (repo *DiskBinRepo) RemoveById(id string) error {
 	path := "./bins/bin-" + id
 	return os.Remove(path)
 }
 
-func (manager *DiskManager) GetById(id string) ([]byte, error) {
+func (repo *DiskBinRepo) GetById(id string) ([]byte, error) {
 	path := "./bins/bin-" + id
 
 	info, err := os.Stat(path)
@@ -56,7 +56,7 @@ func (manager *DiskManager) GetById(id string) ([]byte, error) {
 	return bytes, nil
 }
 
-func (manager *DiskManager) GetAllIds() ([]string, error) {
+func (repo *DiskBinRepo) GetAllIds() ([]string, error) {
 	path := "./bins"
 
 	entries, err := os.ReadDir(path)

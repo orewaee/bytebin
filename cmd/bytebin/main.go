@@ -1,12 +1,12 @@
 package main
 
 import (
-	"github.com/orewaee/bytebin/internal/app"
-	"github.com/orewaee/bytebin/internal/bin"
+	"github.com/orewaee/bytebin/internal/adapters/bin"
+	"github.com/orewaee/bytebin/internal/adapters/http"
+	"github.com/orewaee/bytebin/internal/adapters/meta"
+	"github.com/orewaee/bytebin/internal/app/services"
 	"github.com/orewaee/bytebin/internal/config"
 	"github.com/orewaee/bytebin/internal/logger"
-	"github.com/orewaee/bytebin/internal/meta"
-	"github.com/orewaee/bytebin/internal/storage"
 	"github.com/orewaee/bytebin/internal/utils"
 )
 
@@ -20,24 +20,26 @@ func main() {
 		log.Fatal().Err(err).Send()
 	}
 
-	if err := utils.CheckDir("metas"); err != nil {
-		log.Fatal().Err(err).Send()
-	}
-	diskMetas := meta.NewDiskManager()
-
 	if err := utils.CheckDir("bins"); err != nil {
 		log.Fatal().Err(err).Send()
 	}
-	diskBins := bin.NewDiskManager()
+	binRepo := bin.NewDiskBinRepo()
 
-	diskStorage := storage.NewDiskStorage(diskBins, diskMetas)
-	if err := diskStorage.Load(); err != nil {
+	if err := utils.CheckDir("metas"); err != nil {
 		log.Fatal().Err(err).Send()
 	}
-	defer diskStorage.Unload()
+	metaRepo := meta.NewDiskMetaRepo()
 
-	bytebin := app.New(diskStorage, log)
-	if err := bytebin.Run(config.Get().Addr); err != nil {
+	bytebin := services.NewBytebinService(binRepo, metaRepo)
+	if err := bytebin.Load(); err != nil {
+		log.Fatal().Err(err).Send()
+	}
+	defer bytebin.Unload()
+
+	server := http.NewServer(bytebin)
+	addr := config.Get().Addr
+
+	if err := server.Run(addr); err != nil {
 		log.Fatal().Err(err).Send()
 	}
 }

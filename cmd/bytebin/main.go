@@ -30,13 +30,13 @@ func main() {
 	}
 	metaRepo := meta.NewDiskMetaRepo()
 
-	bytebin := services.NewBytebinService(binRepo, metaRepo)
+	bytebin := services.NewBytebinService(binRepo, metaRepo, log)
 	if err := bytebin.Load(); err != nil {
 		log.Fatal().Err(err).Send()
 	}
 	defer bytebin.Unload()
 
-	server := http.NewServer(bytebin)
+	server := http.NewServer(bytebin, log)
 	addr := config.Get().Addr
 
 	if err := server.Run(addr); err != nil {

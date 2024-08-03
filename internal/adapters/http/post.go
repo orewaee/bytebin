@@ -5,30 +5,37 @@ import (
 	"github.com/orewaee/bytebin/internal/app/ports"
 	"github.com/orewaee/bytebin/internal/config"
 	"github.com/rs/xid"
+	"github.com/rs/zerolog"
 	"io"
-	"log"
 	"net/http"
 	"time"
 )
 
 type PostHandler struct {
 	bytebinService ports.BytebinService
+	log            *zerolog.Logger
 }
 
-func NewPostHandler(bytebinService ports.BytebinService) *PostHandler {
+func NewPostHandler(bytebinService ports.BytebinService, log *zerolog.Logger) *PostHandler {
 	return &PostHandler{
 		bytebinService: bytebinService,
+		log:            log,
 	}
 }
 
 func (handler *PostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	handler.log.Debug().
+		Str("method", "POST").
+		Str("route", r.URL.String()).
+		Send()
+
 	bin, err := io.ReadAll(r.Body)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 
 		message := []byte("failed to read bytes")
 		if _, err := w.Write(message); err != nil {
-			log.Println(err)
+			handler.log.Err(err).Send()
 		}
 
 		return
@@ -58,7 +65,7 @@ func (handler *PostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		message := []byte(err.Error())
 		if _, err := w.Write(message); err != nil {
-			log.Println(err)
+			handler.log.Err(err).Send()
 		}
 
 		return
@@ -68,6 +75,6 @@ func (handler *PostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	message := []byte(id)
 	if _, err := w.Write(message); err != nil {
-		log.Println(err)
+		handler.log.Err(err).Send()
 	}
 }

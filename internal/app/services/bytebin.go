@@ -3,7 +3,7 @@ package services
 import (
 	"github.com/orewaee/bytebin/internal/app/domain"
 	"github.com/orewaee/bytebin/internal/app/ports"
-	"log"
+	"github.com/rs/zerolog"
 	"slices"
 	"time"
 )
@@ -12,10 +12,12 @@ type BytebinService struct {
 	binRepo  ports.BinRepo
 	metaRepo ports.MetaRepo
 	timers   map[string]*time.Timer
+	log      *zerolog.Logger
 }
 
-func NewBytebinService(binRepo ports.BinRepo, metaRepo ports.MetaRepo) *BytebinService {
+func NewBytebinService(binRepo ports.BinRepo, metaRepo ports.MetaRepo, log *zerolog.Logger) *BytebinService {
 	return &BytebinService{
+		log:      log,
 		binRepo:  binRepo,
 		metaRepo: metaRepo,
 		timers:   make(map[string]*time.Timer),
@@ -46,6 +48,7 @@ func (service *BytebinService) Load() error {
 		}
 
 		if err := service.metaRepo.RemoveById(metaId); err != nil {
+			service.log.Err(err).Send()
 			return err
 		}
 	}
@@ -53,25 +56,30 @@ func (service *BytebinService) Load() error {
 	for _, id := range ids {
 		m, err := service.metaRepo.GetById(id)
 		if err != nil {
+			service.log.Err(err).Send()
 			return err
 		}
 
 		expireAt := m.CreatedAt.Add(m.Lifetime)
 		if expireAt.After(time.Now()) {
-
 			duration := expireAt.Sub(time.Now())
 			task := func() {
 				if err := service.RemoveById(id); err != nil {
-					log.Println(err)
+					service.log.Err(err).Send()
 				}
 			}
 
 			service.timers[id] = time.AfterFunc(duration, task)
 
+			service.log.Debug().
+				Str("id", id).
+				Msg("bin and meta loaded")
+
 			continue
 		}
 
 		if err := service.RemoveById(id); err != nil {
+			service.log.Err(err).Send()
 			return err
 		}
 	}
@@ -82,7 +90,10 @@ func (service *BytebinService) Load() error {
 func (service *BytebinService) Unload() error {
 	for id, timer := range service.timers {
 		timer.Stop()
-		log.Println("bin", id, "timer stopped")
+
+		service.log.Debug().
+			Str("id", id).
+			Msg("timer stopped")
 	}
 
 	return nil
@@ -90,36 +101,50 @@ func (service *BytebinService) Unload() error {
 
 func (service *BytebinService) Add(id string, bin []byte, meta *domain.Meta) error {
 	if err := service.binRepo.Add(id, bin); err != nil {
+		service.log.Err(err).Send()
 		return err
 	}
 
 	if err := service.metaRepo.Add(id, meta); err != nil {
+		service.log.Err(err).Send()
 		return err
 	}
 
 	task := func() {
 		if err := service.RemoveById(id); err != nil {
-			log.Println(err) // ??
+			service.log.Err(err).Send()
 		}
 	}
 
 	service.timers[id] = time.AfterFunc(meta.Lifetime, task)
+
+	service.log.Info().
+		Str("id", id).
+		Str("content_type", meta.ContentType).
+		Str("user_agent", meta.UserAgent).
+		Msg("bin and meta added")
 
 	return nil
 }
 
 func (service *BytebinService) RemoveById(id string) error {
 	if err := service.binRepo.RemoveById(id); err != nil {
+		service.log.Err(err).Send()
 		return err
 	}
 
 	if err := service.metaRepo.RemoveById(id); err != nil {
+		service.log.Err(err).Send()
 		return err
 	}
 
 	timer, ok := service.timers[id]
 	if ok {
 		timer.Stop()
+
+		service.log.Debug().
+			Str("id", id).
+			Msg("timer stopped")
 	}
 
 	return nil
@@ -128,11 +153,13 @@ func (service *BytebinService) RemoveById(id string) error {
 func (service *BytebinService) GetById(id string) ([]byte, *domain.Meta, error) {
 	bin, err := service.binRepo.GetById(id)
 	if err != nil {
+		service.log.Err(err).Send()
 		return nil, nil, err
 	}
 
 	meta, err := service.metaRepo.GetById(id)
 	if err != nil {
+		service.log.Err(err).Send()
 		return nil, nil, err
 	}
 
@@ -142,11 +169,13 @@ func (service *BytebinService) GetById(id string) ([]byte, *domain.Meta, error) 
 func (service *BytebinService) GetAllIds() ([]string, error) {
 	binIds, err := service.binRepo.GetAllIds()
 	if err != nil {
+		service.log.Err(err).Send()
 		return nil, err
 	}
 
 	metaIds, err := service.metaRepo.GetAllIds()
 	if err != nil {
+		service.log.Err(err).Send()
 		return nil, err
 	}
 

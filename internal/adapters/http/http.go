@@ -2,26 +2,28 @@ package http
 
 import (
 	"github.com/orewaee/bytebin/internal/app/ports"
-	"log"
+	"github.com/rs/zerolog"
 	"net/http"
 	"time"
 )
 
 type Server struct {
 	bytebinService ports.BytebinService
+	log            *zerolog.Logger
 }
 
-func NewServer(bytebinService ports.BytebinService) *Server {
+func NewServer(bytebinService ports.BytebinService, log *zerolog.Logger) *Server {
 	return &Server{
 		bytebinService: bytebinService,
+		log:            log,
 	}
 }
 
 func (server *Server) Run(addr string) error {
 	mux := http.NewServeMux()
 
-	mux.Handle("POST /bin", NewPostHandler(server.bytebinService))
-	mux.Handle("GET /bin/{id}", NewGetHandler(server.bytebinService))
+	mux.Handle("POST /bin", NewPostHandler(server.bytebinService, server.log))
+	mux.Handle("GET /bin/{id}", NewGetHandler(server.bytebinService, server.log))
 
 	srv := &http.Server{
 		Addr:         addr,
@@ -30,6 +32,6 @@ func (server *Server) Run(addr string) error {
 		WriteTimeout: time.Second * 5,
 	}
 
-	log.Printf("running app on addr %s\n", addr)
+	server.log.Info().Msgf("running app on addr %s", addr)
 	return srv.ListenAndServe()
 }

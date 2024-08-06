@@ -24,6 +24,8 @@ func (handler *GetHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		Str("route", r.URL.String()).
 		Send()
 
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
 	id := r.PathValue("id")
 
 	bin, meta, err := handler.bytebinService.GetById(id)

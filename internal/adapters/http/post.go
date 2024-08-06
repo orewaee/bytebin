@@ -29,6 +29,8 @@ func (handler *PostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		Str("route", r.URL.String()).
 		Send()
 
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
 	bin, err := io.ReadAll(r.Body)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)

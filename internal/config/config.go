@@ -9,8 +9,8 @@ import (
 )
 
 type Config struct {
-	Addr     string        `yaml:"addr" env-default:":8080"`
-	Lifetime time.Duration `yaml:"lifetime" env-default:"1h"`
+	Addr     string        `yaml:"addr" env:"ADDR" env-default:":8080"`
+	Lifetime time.Duration `yaml:"lifetime" env:"LIFETIME" env-default:"1h"`
 }
 
 var config Config
@@ -21,12 +21,13 @@ func Get() *Config {
 
 func Load() error {
 	path := getConfigPath()
-	if path == "" {
-		return errors.New("config file path is empty")
-	}
 
-	if _, err := os.Stat(path); os.IsNotExist(err) {
-		return errors.New("config file does not exist: " + path)
+	if path == "" {
+		if err := cleanenv.ReadEnv(&config); err != nil {
+			return err
+		}
+
+		return nil
 	}
 
 	if err := cleanenv.ReadConfig(path, &config); err != nil {
@@ -39,7 +40,7 @@ func Load() error {
 func getConfigPath() string {
 	var result string
 
-	flag.StringVar(&result, "config", "config.yaml", "config file path")
+	flag.StringVar(&result, "config", "", "config file path")
 	flag.Parse()
 
 	if result == "" {

@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"github.com/orewaee/bytebin/internal/app/api"
+	"github.com/orewaee/bytebin/internal/utils"
 	"github.com/rs/zerolog"
 	"net/http"
 )
@@ -18,23 +19,16 @@ func NewGetHandler(bytebinApi api.BytebinApi, log *zerolog.Logger) *GetHandler {
 	}
 }
 
-func (handler *GetHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	id := r.PathValue("id")
+func (handler *GetHandler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
+	id := request.PathValue("id")
 
 	bin, meta, err := handler.bytebinApi.GetById(id)
 	if err != nil {
-		w.WriteHeader(http.StatusNotFound)
-
-		message := []byte("not found")
-		if _, err := w.Write(message); err != nil {
-			handler.log.Err(err).Send()
-		}
-
+		utils.MustWriteString(writer, "not found", http.StatusNotFound)
+		handler.log.Error().Err(err).Send()
 		return
 	}
 
-	w.Header().Set("Content-Type", meta.ContentType)
-	if _, err := w.Write(bin); err != nil {
-		handler.log.Err(err).Send()
-	}
+	writer.Header().Set("Content-Type", meta.ContentType)
+	utils.MustWriteBytes(writer, bin, http.StatusOK)
 }

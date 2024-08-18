@@ -13,7 +13,7 @@ import (
 )
 
 func main() {
-	log, err := logger.New(".")
+	log, err := logger.NewZerolog()
 	if err != nil {
 		panic(err)
 	}

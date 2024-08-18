@@ -1,12 +1,13 @@
 package main
 
 import (
-	"github.com/orewaee/bytebin/internal/adapters/bin"
-	"github.com/orewaee/bytebin/internal/adapters/http"
-	"github.com/orewaee/bytebin/internal/adapters/meta"
+	"context"
 	"github.com/orewaee/bytebin/internal/app/services"
+	"github.com/orewaee/bytebin/internal/bin"
 	"github.com/orewaee/bytebin/internal/config"
+	"github.com/orewaee/bytebin/internal/controllers"
 	"github.com/orewaee/bytebin/internal/logger"
+	"github.com/orewaee/bytebin/internal/meta"
 	"github.com/orewaee/bytebin/internal/utils"
 	"os"
 	"os/signal"
@@ -19,33 +20,33 @@ func main() {
 	}
 
 	if err := config.Load(); err != nil {
-		log.Fatal().Err(err).Send()
+		panic(err)
 	}
 
 	if err := utils.CheckDir("bins"); err != nil {
-		log.Fatal().Err(err).Send()
+		panic(err)
 	}
 	binRepo := bin.NewDiskBinRepo()
 
 	if err := utils.CheckDir("metas"); err != nil {
-		log.Fatal().Err(err).Send()
+		panic(err)
 	}
 	metaRepo := meta.NewDiskMetaRepo()
 
-	bytebin := services.NewBytebinService(binRepo, metaRepo, log)
-	if err := bytebin.Load(); err != nil {
+	bytebinApi := services.NewBytebinService(binRepo, metaRepo, log)
+	if err := bytebinApi.Load(); err != nil {
 		log.Fatal().Err(err).Send()
 	}
-	defer bytebin.Unload()
+	defer bytebinApi.Unload()
 
-	server := http.NewServer(bytebin, log)
 	addr := config.Get().Addr
+	restController := controllers.NewRestController(addr, bytebinApi, log)
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt)
 
 	go func() {
-		if err := server.Run(addr); err != nil {
+		if err := restController.Run(); err != nil {
 			log.Fatal().Err(err).Send()
 			stop <- os.Interrupt
 		}
@@ -54,7 +55,7 @@ func main() {
 	log.Info().Msg("press ctrl+c to exit")
 
 	<-stop
-	if err := server.Shutdown(); err != nil {
+	if err := restController.Shutdown(context.TODO()); err != nil {
 		log.Fatal().Err(err).Send()
 	}
 }

@@ -12,7 +12,7 @@ func NewDiskBinRepo() *DiskBinRepo {
 	return &DiskBinRepo{}
 }
 
-func (repo *DiskBinRepo) Add(id string, bin []byte) error {
+func (repo *DiskBinRepo) AddBin(id string, bin []byte) error {
 	path := "./bins/bin-" + id
 
 	file, err := os.Create(path)
@@ -27,12 +27,12 @@ func (repo *DiskBinRepo) Add(id string, bin []byte) error {
 	return file.Close()
 }
 
-func (repo *DiskBinRepo) RemoveById(id string) error {
+func (repo *DiskBinRepo) RemoveBinById(id string) error {
 	path := "./bins/bin-" + id
 	return os.Remove(path)
 }
 
-func (repo *DiskBinRepo) GetById(id string) ([]byte, error) {
+func (repo *DiskBinRepo) GetBinById(id string) ([]byte, error) {
 	path := "./bins/bin-" + id
 
 	info, err := os.Stat(path)
@@ -56,7 +56,7 @@ func (repo *DiskBinRepo) GetById(id string) ([]byte, error) {
 	return bytes, nil
 }
 
-func (repo *DiskBinRepo) GetAllIds() ([]string, error) {
+func (repo *DiskBinRepo) GetAllBinIds() ([]string, error) {
 	path := "./bins"
 
 	entries, err := os.ReadDir(path)

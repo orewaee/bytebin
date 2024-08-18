@@ -51,7 +51,7 @@ func main() {
 		}
 	}()
 
-	log.Info().Msg("Press Ctrl+C to exit")
+	log.Info().Msg("press ctrl+c to exit")
 
 	<-stop
 	if err := server.Shutdown(); err != nil {

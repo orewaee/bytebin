@@ -1,20 +1,20 @@
-package http
+package handlers
 
 import (
-	"github.com/orewaee/bytebin/internal/app/ports"
+	"github.com/orewaee/bytebin/internal/app/api"
 	"github.com/rs/zerolog"
 	"net/http"
 )
 
 type GetHandler struct {
-	bytebinService ports.BytebinService
-	log            *zerolog.Logger
+	bytebinApi api.BytebinApi
+	log        *zerolog.Logger
 }
 
-func NewGetHandler(bytebinService ports.BytebinService, log *zerolog.Logger) *GetHandler {
+func NewGetHandler(bytebinApi api.BytebinApi, log *zerolog.Logger) *GetHandler {
 	return &GetHandler{
-		bytebinService: bytebinService,
-		log:            log,
+		bytebinApi: bytebinApi,
+		log:        log,
 	}
 }
 
@@ -28,7 +28,7 @@ func (handler *GetHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	id := r.PathValue("id")
 
-	bin, meta, err := handler.bytebinService.GetById(id)
+	bin, meta, err := handler.bytebinApi.GetById(id)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 

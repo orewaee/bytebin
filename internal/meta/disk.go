@@ -15,7 +15,7 @@ func NewDiskMetaRepo() *DiskMetaRepo {
 	return &DiskMetaRepo{}
 }
 
-func (repo *DiskMetaRepo) Add(id string, meta *domain.Meta) error {
+func (repo *DiskMetaRepo) AddMeta(id string, meta *domain.Meta) error {
 	path := fmt.Sprintf("./metas/meta-%s.json", id)
 
 	file, err := os.Create(path)
@@ -39,12 +39,12 @@ func (repo *DiskMetaRepo) Add(id string, meta *domain.Meta) error {
 	return file.Close()
 }
 
-func (repo *DiskMetaRepo) RemoveById(id string) error {
+func (repo *DiskMetaRepo) RemoveMetaById(id string) error {
 	path := fmt.Sprintf("./metas/meta-%s.json", id)
 	return os.Remove(path)
 }
 
-func (repo *DiskMetaRepo) GetById(id string) (*domain.Meta, error) {
+func (repo *DiskMetaRepo) GetMetaById(id string) (*domain.Meta, error) {
 	path := fmt.Sprintf("./metas/meta-%s.json", id)
 
 	info, err := os.Stat(path)
@@ -82,7 +82,7 @@ func (repo *DiskMetaRepo) GetById(id string) (*domain.Meta, error) {
 	return meta, nil
 }
 
-func (repo *DiskMetaRepo) GetAllIds() ([]string, error) {
+func (repo *DiskMetaRepo) GetAllMetaIds() ([]string, error) {
 	path := "./metas"
 
 	entries, err := os.ReadDir(path)

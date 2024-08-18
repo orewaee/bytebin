@@ -13,7 +13,7 @@ import (
 )
 
 func main() {
-	log, err := logger.New(".")
+	log, err := logger.NewZerolog()
 	if err != nil {
 		panic(err)
 	}
@@ -51,7 +51,7 @@ func main() {
 		}
 	}()
 
-	log.Info().Msg("Press Ctrl+C to exit")
+	log.Info().Msg("press ctrl+c to exit")
 
 	<-stop
 	if err := server.Shutdown(); err != nil {

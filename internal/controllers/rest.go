@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/orewaee/bytebin/internal/app/api"
 	"github.com/orewaee/bytebin/internal/handlers"
+	"github.com/orewaee/bytebin/internal/middlewares"
 	"github.com/rs/zerolog"
 	"net/http"
 	"time"
@@ -18,8 +19,11 @@ type RestController struct {
 func NewRestController(addr string, bytebinApi api.BytebinApi, log *zerolog.Logger) *RestController {
 	mux := http.NewServeMux()
 
-	mux.Handle("POST /bin", handlers.NewPostHandler(bytebinApi, log))
-	mux.Handle("GET /bin/{id}", handlers.NewGetHandler(bytebinApi, log))
+	mux.Handle("POST /bin", middlewares.CorsMiddleware(
+		middlewares.LogMiddleware(handlers.NewPostHandler(bytebinApi, log), log)))
+
+	mux.Handle("GET /bin/{id}", middlewares.CorsMiddleware(
+		middlewares.LogMiddleware(handlers.NewGetHandler(bytebinApi, log), log)))
 
 	server := &http.Server{
 		Addr:         addr,

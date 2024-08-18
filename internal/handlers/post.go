@@ -24,8 +24,6 @@ func NewPostHandler(bytebinApi api.BytebinApi, log *zerolog.Logger) *PostHandler
 }
 
 func (handler *PostHandler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
-	writer.Header().Set("Access-Control-Allow-Origin", "*")
-
 	bin, err := io.ReadAll(request.Body)
 	if err != nil {
 		writer.WriteHeader(http.StatusInternalServerError)

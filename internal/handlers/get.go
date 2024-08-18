@@ -19,13 +19,6 @@ func NewGetHandler(bytebinApi api.BytebinApi, log *zerolog.Logger) *GetHandler {
 }
 
 func (handler *GetHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	handler.log.Debug().
-		Str("method", "GET").
-		Str("route", r.URL.String()).
-		Send()
-
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-
 	id := r.PathValue("id")
 
 	bin, meta, err := handler.bytebinApi.GetById(id)

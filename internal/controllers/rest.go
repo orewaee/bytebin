@@ -19,6 +19,10 @@ type RestController struct {
 func NewRestController(addr string, bytebinApi api.BytebinApi, log *zerolog.Logger) *RestController {
 	mux := http.NewServeMux()
 
+	mux.HandleFunc("OPTIONS /*", func(writer http.ResponseWriter, request *http.Request) {
+		writer.WriteHeader(http.StatusOK)
+	})
+
 	mux.Handle("POST /bin", middlewares.CorsMiddleware(
 		middlewares.LogMiddleware(handlers.NewPostHandler(bytebinApi, log), log)))
 

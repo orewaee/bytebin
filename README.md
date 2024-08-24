@@ -16,3 +16,30 @@ To work with the app, you can use the following endpoints:
 
 - `GET /bin/{id}` - get bin by id.
   The response will be returned as a byte array and a `Content-Type` header associated with this bin.
+
+
+## Installation
+
+We suggest you deploy your own bytebin using Docker.
+
+The first step is to clone the project:
+
+```bash
+git clone https://github.com/orewaee/bytebin.git
+cd bytebin
+```
+
+After downloading, take a look at the `deploy/compose.yaml` file.
+You can customize the Docker Compose config to your liking, or you can start running it right away.
+
+To run bytebin use the following command:
+
+```bash
+docker compose -f ./deploy/compose.yaml -p bytebin up -d
+```
+
+Or a `sh` script:
+
+```bash
+sh scripts/compose.sh
+```

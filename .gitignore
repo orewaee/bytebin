@@ -3,6 +3,8 @@
 /metas
 /bins
 
+*.env
+
 /config/*.yaml
 !/config/example.yaml
 

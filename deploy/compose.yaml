@@ -1,0 +1,19 @@
+version: "3.9"
+services:
+  bytebin:
+    build: ../
+    container_name: bytebin
+    restart: unless-stopped
+    env_file:
+      - ../config/.env.example
+    volumes:
+      - bytebin:/data/bytebin
+    ports:
+      - "8080:8080"
+    networks:
+      - bytebin
+networks:
+  bytebin:
+    driver: bridge
+volumes:
+  bytebin:

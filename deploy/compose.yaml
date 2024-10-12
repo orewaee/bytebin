@@ -4,12 +4,11 @@ services:
     build: ../
     container_name: bytebin
     restart: unless-stopped
-    env_file:
-      - ../config/.env.example
+    command: "--config=../config/example.yaml"
     volumes:
-      - bytebin:/data/bytebin
+      - ../config/example.yaml:/config/example.yaml
     ports:
-      - "8080:8080"
+      - "8081:8080"
     networks:
       - bytebin
 networks:

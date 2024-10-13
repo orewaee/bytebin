@@ -1,7 +1,7 @@
 version: "3.9"
 services:
   bytebin:
-    build: ../
+    image: orewaee/bytebin:latest
     container_name: bytebin
     restart: unless-stopped
     command: "--config=../config/example.yaml"

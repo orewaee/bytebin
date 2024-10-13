@@ -49,5 +49,6 @@ func (controller *RestController) Run() error {
 }
 
 func (controller *RestController) Shutdown(ctx context.Context) error {
+	controller.log.Info().Msg("shutting down...")
 	return controller.server.Shutdown(ctx)
 }

@@ -3,7 +3,6 @@ package controllers
 import (
 	"context"
 	"github.com/orewaee/bytebin/internal/app/api"
-	"github.com/orewaee/bytebin/internal/handlers"
 	"github.com/orewaee/bytebin/internal/middlewares"
 	"github.com/rs/zerolog"
 	"net/http"
@@ -13,25 +12,12 @@ import (
 type RestController struct {
 	server     *http.Server
 	bytebinApi api.BytebinApi
-	log        *zerolog.Logger
+	logger     *zerolog.Logger
 }
 
-func NewRestController(addr string, bytebinApi api.BytebinApi, log *zerolog.Logger) *RestController {
-	mux := http.NewServeMux()
-
-	mux.HandleFunc("OPTIONS /*", func(writer http.ResponseWriter, request *http.Request) {
-		writer.WriteHeader(http.StatusOK)
-	})
-
-	mux.Handle("POST /bin", middlewares.CorsMiddleware(
-		middlewares.LogMiddleware(handlers.NewPostHandler(bytebinApi, log), log)))
-
-	mux.Handle("GET /bin/{id}", middlewares.CorsMiddleware(
-		middlewares.LogMiddleware(handlers.NewGetHandler(bytebinApi, log), log)))
-
+func NewRestController(addr string, bytebinApi api.BytebinApi, logger *zerolog.Logger) *RestController {
 	server := &http.Server{
 		Addr:         addr,
-		Handler:      mux,
 		ReadTimeout:  time.Second * 5,
 		WriteTimeout: time.Second * 5,
 	}
@@ -39,16 +25,30 @@ func NewRestController(addr string, bytebinApi api.BytebinApi, log *zerolog.Logg
 	return &RestController{
 		server:     server,
 		bytebinApi: bytebinApi,
-		log:        log,
+		logger:     logger,
 	}
 }
 
 func (controller *RestController) Run() error {
-	controller.log.Info().Msgf("running on addr %s", controller.server.Addr)
+	mux := http.NewServeMux()
+
+	mux.HandleFunc("OPTIONS /*", func(writer http.ResponseWriter, request *http.Request) {
+		writer.WriteHeader(http.StatusOK)
+	})
+
+	mux.Handle("POST /bin", middlewares.CorsMiddleware(
+		middlewares.LogMiddleware(controller.post, controller.logger)))
+
+	mux.Handle("GET /bin/{id}", middlewares.CorsMiddleware(
+		middlewares.LogMiddleware(controller.get, controller.logger)))
+
+	controller.server.Handler = mux
+
+	controller.logger.Info().Msgf("running on addr %s", controller.server.Addr)
 	return controller.server.ListenAndServe()
 }
 
 func (controller *RestController) Shutdown(ctx context.Context) error {
-	controller.log.Info().Msg("shutting down...")
+	controller.logger.Info().Msg("shutting down...")
 	return controller.server.Shutdown(ctx)
 }

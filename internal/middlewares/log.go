@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-func LogMiddleware(next http.Handler, log *zerolog.Logger) http.Handler {
+func LogMiddleware(next http.HandlerFunc, log *zerolog.Logger) http.Handler {
 	handler := func(writer http.ResponseWriter, request *http.Request) {
 		log.Debug().
 			Str("method", request.Method).
